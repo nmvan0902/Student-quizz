@@ -4,6 +4,7 @@ import DashboardPage from '../pages/DashboardPage';
 import QuizPage from '../pages/QuizPage';
 import AdminLayout from '../layouts/AdminLayout';
 import ScoreResults from '../components/ScoreResults';
+import WaitingRoomPage from '../components/WaitingRoomPage';
 
 export const router = createBrowserRouter([
   {
@@ -29,7 +30,11 @@ export const router = createBrowserRouter([
       {
         path: 'scores',
         element: <ScoreResults />,
-      }
+      },
+      {
+            path: '/waiting-room/:id',
+            element: <WaitingRoomPage />
+    },
     ],
   },
 ]);

@@ -1,3 +1,4 @@
+// filepath: d:\workspace\project\Student-quizz\frontend\src\components\Calendar.jsx
 import { useState, useEffect } from 'react';
 import { getQuizCalendar } from '../data/mockData';
 
@@ -34,17 +35,12 @@ export default function Calendar({ onClose }) {
       days.push(day);
     }
     
-    return days;
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'ongoing': return 'var(--color-green)';
-      case 'starting_soon': return '#ff8c00';
-      case 'upcoming': return 'var(--color-navy)';
-      case 'completed': return '#6c757d';
-      default: return 'var(--color-navy)';
+    // Thêm ngày trống để đủ 42 ô (6 hàng x 7 cột)
+    while (days.length < 42) {
+      days.push(null);
     }
+    
+    return days;
   };
 
   const getStatusBadge = (status) => {
@@ -60,10 +56,10 @@ export default function Calendar({ onClose }) {
     return (
       <span 
         className="badge rounded-pill d-flex align-items-center gap-1"
-        style={{ backgroundColor: badge.color, fontSize: '0.7rem' }}
+        style={{ backgroundColor: badge.color, fontSize: '0.65rem', padding: '0.25em 0.5em' }}
       >
         <span>{badge.icon}</span>
-        {badge.text}
+        <span className="d-none d-md-inline">{badge.text}</span>
       </span>
     );
   };
@@ -104,20 +100,22 @@ export default function Calendar({ onClose }) {
       className="position-absolute shadow-lg border-0 rounded-3"
       style={{ 
         backgroundColor: 'var(--color-white)',
-        width: showDayDetail ? '450px' : '320px',
+        width: showDayDetail ? 'min(500px, 95vw)' : 'min(350px, 90vw)',
         zIndex: 1050,
         top: '100%',
         right: '0',
-        transition: 'width 0.3s ease'
+        transition: 'width 0.3s ease',
+        maxHeight: '80vh',
+        overflow: 'hidden'
       }}
     >
-      <div className="card border-0">
+      <div className="card border-0 h-100">
         <div 
           className="card-header d-flex justify-content-between align-items-center border-0"
           style={{ backgroundColor: 'var(--color-gray)' }}
         >
           <button 
-            className="btn btn-sm btn-link p-0"
+            className="btn btn-sm btn-link p-1"
             onClick={() => navigateMonth(-1)}
             style={{ color: 'var(--color-navy)' }}
           >
@@ -126,12 +124,12 @@ export default function Calendar({ onClose }) {
             </svg>
           </button>
           
-          <h6 className="mb-0 fw-bold" style={{ color: 'var(--color-dark)' }}>
+          <h6 className="mb-0 fw-bold small" style={{ color: 'var(--color-dark)' }}>
             {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
           </h6>
           
           <button 
-            className="btn btn-sm btn-link p-0"
+            className="btn btn-sm btn-link p-1"
             onClick={() => navigateMonth(1)}
             style={{ color: 'var(--color-navy)' }}
           >
@@ -141,15 +139,15 @@ export default function Calendar({ onClose }) {
           </button>
         </div>
         
-        <div className="card-body p-3">
-          <div className="row">
+        <div className="card-body p-2" style={{ overflow: 'auto' }}>
+          <div className="row g-0">
             {/* Calendar Section */}
             <div className={showDayDetail ? 'col-7' : 'col-12'}>
               {/* Day headers */}
-              <div className="row text-center mb-2">
+              <div className="d-flex mb-2">
                 {dayNames.map(day => (
-                  <div key={day} className="col">
-                    <small className="fw-bold" style={{ color: 'var(--text-secondary)' }}>
+                  <div key={day} className="flex-fill text-center">
+                    <small className="fw-bold" style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>
                       {day}
                     </small>
                   </div>
@@ -157,56 +155,62 @@ export default function Calendar({ onClose }) {
               </div>
               
               {/* Calendar grid */}
-              <div className="row">
-                {days.map((day, index) => (
-                  <div key={index} className="col p-1">
-                    {day && (
-                      <div 
-                        className="position-relative d-flex align-items-center justify-content-center calendar-day"
-                        style={{ 
-                          height: '32px',
-                          borderRadius: '6px',
-                          backgroundColor: isToday(day) 
-                            ? 'var(--color-green)' 
-                            : quizDates[day] 
-                              ? 'rgba(34, 40, 72, 0.1)' 
-                              : 'transparent',
-                          cursor: quizDates[day] ? 'pointer' : 'default',
-                          border: selectedDay === day ? '2px solid var(--color-navy)' : 'none'
-                        }}
-                        onClick={() => handleDayClick(day)}
-                        title={quizDates[day] ? `${quizDates[day].length} kỳ thi - Nhấn để xem chi tiết` : ''}
-                      >
-                        <span 
-                          className="small"
-                          style={{ 
-                            color: isToday(day) 
-                              ? 'var(--color-white)'
-                              : quizDates[day] 
-                                ? 'var(--color-navy)' 
-                                : 'var(--color-dark)',
-                            fontWeight: quizDates[day] || isToday(day) ? 'bold' : 'normal'
-                          }}
-                        >
-                          {day}
-                        </span>
-                        
-                        {/* Quiz indicator dot */}
-                        {quizDates[day] && !isToday(day) && (
+              <div>
+                {Array.from({ length: 6 }, (_, weekIndex) => (
+                  <div key={weekIndex} className="d-flex">
+                    {days.slice(weekIndex * 7, (weekIndex + 1) * 7).map((day, dayIndex) => (
+                      <div key={weekIndex * 7 + dayIndex} className="flex-fill p-1">
+                        {day && (
                           <div 
-                            className="position-absolute"
+                            className="position-relative d-flex align-items-center justify-content-center calendar-day"
                             style={{ 
-                              bottom: '2px', 
-                              right: '2px',
-                              width: '6px',
-                              height: '6px',
-                              borderRadius: '50%',
-                              backgroundColor: 'var(--color-green)'
+                              height: '32px',
+                              borderRadius: '6px',
+                              backgroundColor: isToday(day) 
+                                ? 'var(--color-green)' 
+                                : quizDates[day] 
+                                  ? 'rgba(34, 40, 72, 0.1)' 
+                                  : 'transparent',
+                              cursor: quizDates[day] ? 'pointer' : 'default',
+                              border: selectedDay === day ? '2px solid var(--color-navy)' : 'none',
+                              transition: 'all 0.2s ease'
                             }}
-                          />
+                            onClick={() => handleDayClick(day)}
+                            title={quizDates[day] ? `${quizDates[day].length} kỳ thi - Nhấn để xem chi tiết` : ''}
+                          >
+                            <span 
+                              className="small"
+                              style={{ 
+                                color: isToday(day) 
+                                  ? 'var(--color-white)'
+                                  : quizDates[day] 
+                                    ? 'var(--color-navy)' 
+                                    : 'var(--color-dark)',
+                                fontWeight: quizDates[day] || isToday(day) ? 'bold' : 'normal',
+                                fontSize: '0.8rem'
+                              }}
+                            >
+                              {day}
+                            </span>
+                            
+                            {/* Quiz indicator dot */}
+                            {quizDates[day] && !isToday(day) && (
+                              <div 
+                                className="position-absolute"
+                                style={{ 
+                                  bottom: '2px', 
+                                  right: '2px',
+                                  width: '6px',
+                                  height: '6px',
+                                  borderRadius: '50%',
+                                  backgroundColor: 'var(--color-green)'
+                                }}
+                              />
+                            )}
+                          </div>
                         )}
                       </div>
-                    )}
+                    ))}
                   </div>
                 ))}
               </div>
@@ -214,9 +218,9 @@ export default function Calendar({ onClose }) {
 
             {/* Day Detail Section */}
             {showDayDetail && selectedDay && quizDates[selectedDay] && (
-              <div className="col-5 border-start ps-3">
+              <div className="col-5 border-start ps-2">
                 <div className="d-flex justify-content-between align-items-center mb-2">
-                  <h6 className="mb-0 fw-bold" style={{ color: 'var(--color-navy)' }}>
+                  <h6 className="mb-0 fw-bold small" style={{ color: 'var(--color-navy)' }}>
                     Ngày {selectedDay}
                   </h6>
                   <button 
@@ -231,7 +235,7 @@ export default function Calendar({ onClose }) {
                 </div>
                 
                 <div className="mb-2">
-                  <small style={{ color: 'var(--text-secondary)' }}>
+                  <small style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>
                     {quizDates[selectedDay].length} kỳ thi
                   </small>
                 </div>
@@ -246,7 +250,7 @@ export default function Calendar({ onClose }) {
                       <div className="d-flex justify-content-between align-items-start mb-1">
                         <h6 
                           className="mb-0 small fw-bold"
-                          style={{ color: 'var(--color-navy)', fontSize: '0.8rem' }}
+                          style={{ color: 'var(--color-navy)', fontSize: '0.75rem' }}
                         >
                           {quiz.title}
                         </h6>
@@ -257,7 +261,7 @@ export default function Calendar({ onClose }) {
                         className="mb-1 small"
                         style={{ 
                           color: 'var(--text-secondary)', 
-                          fontSize: '0.75rem',
+                          fontSize: '0.7rem',
                           lineHeight: '1.2'
                         }}
                       >
@@ -265,8 +269,8 @@ export default function Calendar({ onClose }) {
                       </p>
                       
                       <div className="d-flex justify-content-between align-items-center">
-                        <small style={{ color: 'var(--text-secondary)', fontSize: '0.7rem' }}>
-                          <svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24" className="me-1">
+                        <small style={{ color: 'var(--text-secondary)', fontSize: '0.65rem' }}>
+                          <svg width="10" height="10" fill="currentColor" viewBox="0 0 24 24" className="me-1">
                             <path d="M12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22C6.47,22 2,17.5 2,12A10,10 0 0,1 12,2M12.5,7V12.25L17,14.92L16.25,16.15L11,13V7H12.5Z"/>
                           </svg>
                           {new Date(quiz.startTime).toLocaleTimeString('vi-VN', { 
@@ -277,13 +281,13 @@ export default function Calendar({ onClose }) {
                         
                         {quiz.currentStatus.canStart && (
                           <button 
-                            className="btn btn-sm py-0 px-2"
+                            className="btn btn-sm py-0 px-1"
                             style={{ 
                               backgroundColor: quiz.currentStatus.status === 'ongoing' 
                                 ? 'var(--color-green)' 
                                 : 'var(--color-navy)',
                               color: 'var(--color-white)',
-                              fontSize: '0.7rem'
+                              fontSize: '0.65rem'
                             }}
                             onClick={() => {
                               window.location.href = `/quiz/${quiz.id}`;
@@ -302,8 +306,8 @@ export default function Calendar({ onClose }) {
           
           {/* Legend - chỉ hiện khi không có detail */}
           {!showDayDetail && (
-            <div className="mt-3 pt-3 border-top">
-              <small className="fw-bold d-block mb-2" style={{ color: 'var(--color-dark)' }}>
+            <div className="mt-3 pt-2 border-top">
+              <small className="fw-bold d-block mb-2" style={{ color: 'var(--color-dark)', fontSize: '0.75rem' }}>
                 Chú thích:
               </small>
               <div className="d-flex flex-wrap gap-2 align-items-center">
@@ -314,21 +318,21 @@ export default function Calendar({ onClose }) {
                     borderRadius: '50%', 
                     backgroundColor: 'var(--color-green)' 
                   }}></div>
-                  <small style={{ color: 'var(--text-secondary)' }}>Có kỳ thi</small>
+                  <small style={{ color: 'var(--text-secondary)', fontSize: '0.7rem' }}>Có kỳ thi</small>
                 </div>
                 <div className="d-flex align-items-center gap-1">
                   <div style={{ 
-                    width: '16px', 
-                    height: '16px', 
-                    borderRadius: '4px', 
+                    width: '12px', 
+                    height: '12px', 
+                    borderRadius: '3px', 
                     backgroundColor: 'var(--color-green)' 
                   }}></div>
-                  <small style={{ color: 'var(--text-secondary)' }}>Hôm nay</small>
+                  <small style={{ color: 'var(--text-secondary)', fontSize: '0.7rem' }}>Hôm nay</small>
                 </div>
-                <small style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>
-                  💡 Nhấn vào ngày để xem chi tiết
-                </small>
               </div>
+              <small style={{ color: 'var(--text-secondary)', fontStyle: 'italic', fontSize: '0.7rem' }} className="d-block mt-1">
+                💡 Nhấn vào ngày để xem chi tiết
+              </small>
             </div>
           )}
         </div>

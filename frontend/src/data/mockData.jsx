@@ -216,11 +216,12 @@ export const getQuizStatus = (quiz) => {
     const minutesLeft = Math.floor(timeDiff / (1000 * 60));
     const hoursLeft = Math.floor(minutesLeft / 60);
     
-    if (minutesLeft < 60) {
+    // Cho phép vào phòng chờ trước 30 phút
+    if (minutesLeft <= 30) {
       return {
         status: 'starting_soon',
-        timeLeft: `${minutesLeft} phút nữa`,
-        canStart: minutesLeft <= 10
+        timeLeft: minutesLeft > 60 ? `${hoursLeft} giờ ${minutesLeft % 60} phút nữa` : `${minutesLeft} phút nữa`,
+        canStart: true // Cho phép vào phòng chờ
       };
     } else {
       return {
@@ -401,3 +402,4 @@ export const getCurrentUser = () => {
     return null;
   }
 };
+
