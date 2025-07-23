@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { getCurrentUser, getQuizStats } from '../data/mockData';
+import Calendar from './Calendar';
 
 export default function Navbar() {
   const [user, setUser] = useState(null);
   const [quizStats, setQuizStats] = useState({});
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false); // Thêm state này
 
   useEffect(() => {
     const currentUser = getCurrentUser();
@@ -20,6 +22,21 @@ export default function Navbar() {
     }, 60000);
     
     return () => clearInterval(interval);
+  }, []);
+
+  // Thêm useEffect để đóng dropdowns khi click outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Đóng tất cả dropdowns nếu click bên ngoài
+      if (!event.target.closest('.dropdown-container')) {
+        setShowNotifications(false);
+        setShowProfile(false);
+        setShowCalendar(false);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
   const notifications = [
@@ -90,11 +107,17 @@ export default function Navbar() {
         {/* Right side items */}
         <div className="d-flex align-items-center gap-3">
           {/* Calendar with quiz count - Badge lớn hơn */}
-          <div className="position-relative">
+          <div className="position-relative dropdown-container">
             <button 
               className="btn btn-link p-2 position-relative"
               style={{ color: 'var(--color-navy)' }}
               title={`${quizStats.todayOngoing} kỳ thi đang diễn ra hôm nay`}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowCalendar(!showCalendar);
+                setShowNotifications(false);
+                setShowProfile(false);
+              }}
             >
               <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M19 3H18V1H16V3H8V1H6V3H5C3.89 3 3 3.9 3 5V19C3 20.1 3.89 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3M19 19H5V8H19V19M7 10H12V15H7"/>
@@ -120,14 +143,24 @@ export default function Navbar() {
                 </span>
               )}
             </button>
+
+            {/* Calendar Dropdown */}
+            {showCalendar && (
+              <Calendar onClose={() => setShowCalendar(false)} />
+            )}
           </div>
 
           {/* Notification Bell */}
-          <div className="position-relative">
+          <div className="position-relative dropdown-container">
             <button 
               className="btn btn-link p-2 position-relative"
               style={{ color: 'var(--color-navy)' }}
-              onClick={() => setShowNotifications(!showNotifications)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowNotifications(!showNotifications);
+                setShowCalendar(false);
+                setShowProfile(false);
+              }}
             >
               <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 22C13.1 22 14 21.1 14 20H10C10 21.1 10.89 22 12 22M18 16V11C18 7.93 16.36 5.36 13.5 4.68V4C13.5 3.17 12.83 2.5 12 2.5S10.5 3.17 10.5 4V4.68C7.63 5.36 6 7.92 6 11V16L4 18V19H20V18L18 16Z"/>
@@ -209,10 +242,15 @@ export default function Navbar() {
           </div>
 
           {/* Profile Dropdown */}
-          <div className="position-relative">
+          <div className="position-relative dropdown-container">
             <button 
               className="btn btn-link p-0 d-flex align-items-center"
-              onClick={() => setShowProfile(!showProfile)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowProfile(!showProfile);
+                setShowCalendar(false);
+                setShowNotifications(false);
+              }}
             >
               <div 
                 className="rounded-circle d-flex align-items-center justify-content-center"
